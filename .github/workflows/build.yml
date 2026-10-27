@@ -1,0 +1,130 @@
+name: Build flash kit
+
+on:
+  # Manuell starten: GitHub -> Actions -> "Build flash kit" -> "Run workflow"
+  workflow_dispatch:
+    inputs:
+      fresh_port:
+        description: "Neuesten vayu-Port-CI-Build von GitLab holen (statt aus dem letzten Release)"
+        type: boolean
+        default: false
+      release:
+        description: "Ergebnis als GitHub-Release veröffentlichen"
+        type: boolean
+        default: false
+  # Tag pushen (git tag v1.0 && git push --tags) -> Build + Release
+  push:
+    tags: ['v*']
+  # Optional: wöchentlich neu bauen (neues UBports-Rootfs)
+  # schedule:
+  #   - cron: '17 3 * * 1'
+
+permissions:
+  contents: write          # nötig zum Anlegen von Releases
+
+concurrency:
+  group: build-flashkit
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      KIT: vayu-ubuntu-touch-24.04-flashkit
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        working-directory: build   # build-2404.sh liegt in build/, erzeugt dort alles
+    steps:
+      - uses: actions/checkout@v5
+
+      # Der Runner hat nur ~14 GB frei, das Skript braucht ~16 GB + Pack-Platz.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune -af >/dev/null 2>&1 || true
+          df -h /
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends \
+            curl wget python3 unzip fakeroot e2fsprogs xz-utils zstd
+          # wget-Fortschrittsbalken sonst zeilenweise im Log
+          echo 'progress = dot:giga' > ~/.wgetrc
+
+      # Rootfs, Halium, Droidian (~2 GB) zwischenspeichern -> zweiter Lauf schneller
+      - name: Cache downloads
+        uses: actions/cache@v4
+        with:
+          path: build/dl
+          key: dl-${{ hashFiles('build/build-2404.sh') }}-${{ github.run_id }}
+          restore-keys: dl-
+
+      # GitLab löscht die Port-CI-Artefakte nach ~30 Tagen. Deshalb wird
+      # device_vayu_usrmerge.tar.xz in jedem Release mit abgelegt und hier
+      # wiederverwendet, solange fresh_port nicht gesetzt ist.
+      - name: Device overlay from latest release
+        if: ${{ !inputs.fresh_port }}
+        run: |
+          mkdir -p out
+          if gh release download --repo "$GITHUB_REPOSITORY" \
+               --pattern device_vayu_usrmerge.tar.xz --dir out 2>/dev/null; then
+            echo "Device-Overlay aus letztem Release übernommen"
+          else
+            echo "Kein Release mit Device-Overlay -> Build-Skript holt es von GitLab"
+          fi
+
+      - name: Build kit
+        run: |
+          chmod +x build-2404.sh
+          ./build-2404.sh --pack
+          df -h /
+
+      # Release-Assets dürfen max. 2 GiB groß sein -> in Teile splitten
+      - name: Prepare dist
+        run: |
+          mkdir -p dist
+          split -b 1900M -d -a 2 "$KIT.tar.zst" "dist/$KIT.tar.zst.part"
+          cp "$KIT.tar.zst.sha256" dist/
+          cp "$KIT/SHA256SUMS" dist/images.SHA256SUMS
+          cp out/device_vayu_usrmerge.tar.xz dist/
+          ls -lh dist
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.KIT }}
+          path: build/dist/
+          compression-level: 0
+          retention-days: 7
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/') || inputs.release
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="$GITHUB_REF_NAME"
+          else
+            TAG="build-$(date -u +%Y%m%d-%H%M)"
+          fi
+          cat > notes.md <<EOF
+          Ubuntu Touch 24.04 Flash-Kit für Poco X3 Pro (vayu), gebaut von Commit ${GITHUB_SHA::7}.
+
+          **Zusammensetzen und prüfen:**
+          \`\`\`bash
+          cat $KIT.tar.zst.part* > $KIT.tar.zst
+          sha256sum -c $KIT.tar.zst.sha256
+          tar --zstd -xf $KIT.tar.zst
+          cd $KIT && ./flash.sh      # Telefon im Fastboot-Modus
+          \`\`\`
+
+          ⚠️ Inoffiziell, Flashen löscht alle Daten.
+          EOF
+          gh release create "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Flash kit $TAG" \
+            --notes-file notes.md

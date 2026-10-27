@@ -1,0 +1,8 @@
+images/
+*.img
+*.tar.zst*
+build/dl/
+build/out/
+build/out-2404/
+build/stage/
+build/vayu-ubuntu-touch-24.04-flashkit/
