@@ -37,7 +37,7 @@ jobs:
       run:
         working-directory: build   # build-2404.sh liegt in build/, erzeugt dort alles
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # Der Runner hat nur ~14 GB frei, das Skript braucht ~16 GB + Pack-Platz.
       - name: Free disk space
@@ -58,7 +58,7 @@ jobs:
 
       # Rootfs, Halium, Droidian (~2 GB) zwischenspeichern -> zweiter Lauf schneller
       - name: Cache downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/dl
           key: dl-${{ hashFiles('build/build-2404.sh') }}-${{ github.run_id }}
@@ -95,7 +95,7 @@ jobs:
           ls -lh dist
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.KIT }}
           path: build/dist/
