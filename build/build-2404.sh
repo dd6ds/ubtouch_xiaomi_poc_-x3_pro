@@ -152,6 +152,16 @@ Tested on 2026-10-28 with this kit (UT 24.04-2.2 stable) on a Poco X3 Pro (MIUI 
 | Hotspot | ✅ WORKS |
 | GPS | ✅ WORKS |
 | Mobile network / phone calls | ✅ WORKS |
+| Torchlight | ✅ WORKS |
+| Switching between cameras | ✅ WORKS |
+| Video | ✅ WORKS |
+| Data connection | ✅ WORKS |
+| PIN unlock | ✅ WORKS |
+| Volume control in calls | ✅ WORKS |
+| Battery percentage | ✅ WORKS |
+| Offline charging | ✅ WORKS |
+| SD card storage | ✅ WORKS |
+| Shutdown / Reboot | ✅ WORKS |
 
 ### Screenshots
 
@@ -420,6 +430,16 @@ Getestet am 28.10.2026 mit diesem Kit (UT 24.04-2.2 stable) auf einem Poco X3 Pr
 | Hotspot | ✅ FUNKTIONIERT |
 | GPS | ✅ FUNKTIONIERT |
 | Mobilfunk / Telefonieren | ✅ FUNKTIONIERT |
+| Taschenlampe | ✅ FUNKTIONIERT |
+| Kamerawechsel (vorne/hinten) | ✅ FUNKTIONIERT |
+| Video | ✅ FUNKTIONIERT |
+| Mobile Daten | ✅ FUNKTIONIERT |
+| SIM-PIN entsperren | ✅ FUNKTIONIERT |
+| Lautstärke im Gespräch | ✅ FUNKTIONIERT |
+| Akkustand in Prozent | ✅ FUNKTIONIERT |
+| Laden im ausgeschalteten Zustand | ✅ FUNKTIONIERT |
+| SD-Karte | ✅ FUNKTIONIERT |
+| Ausschalten / Neustart | ✅ FUNKTIONIERT |
 
 ### Screenshots
 

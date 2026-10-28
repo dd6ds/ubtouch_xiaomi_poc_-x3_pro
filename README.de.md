@@ -30,6 +30,16 @@ Getestet am 28.10.2026 mit diesem Kit (UT 24.04-2.2 stable) auf einem Poco X3 Pr
 | Hotspot | ✅ FUNKTIONIERT |
 | GPS | ✅ FUNKTIONIERT |
 | Mobilfunk / Telefonieren | ✅ FUNKTIONIERT |
+| Taschenlampe | ✅ FUNKTIONIERT |
+| Kamerawechsel (vorne/hinten) | ✅ FUNKTIONIERT |
+| Video | ✅ FUNKTIONIERT |
+| Mobile Daten | ✅ FUNKTIONIERT |
+| SIM-PIN entsperren | ✅ FUNKTIONIERT |
+| Lautstärke im Gespräch | ✅ FUNKTIONIERT |
+| Akkustand in Prozent | ✅ FUNKTIONIERT |
+| Laden im ausgeschalteten Zustand | ✅ FUNKTIONIERT |
+| SD-Karte | ✅ FUNKTIONIERT |
+| Ausschalten / Neustart | ✅ FUNKTIONIERT |
 
 ### Screenshots
 
