@@ -15,6 +15,91 @@ Inoffizielles Ubuntu-Touch-Image für das Poco X3 Pro (Codename **vayu**), gebau
 > ⚠️ Das ist **kein** offizielles UBports-Release, das Gerät ist **nicht** im UBports-Installer.
 > Das Flashen löscht **alle Daten** auf dem Telefon. Nutzung auf eigene Gefahr.
 
+## Hardware-Unterstützung
+
+Getestet am 28.10.2026 mit diesem Kit (UT 24.04-2.2 stable) auf einem Poco X3 Pro (Firmware-Basis MIUI 12.5.5 EEA).
+
+| Funktion | Status |
+|---|---|
+| WLAN | ✅ FUNKTIONIERT |
+| Bluetooth | ✅ FUNKTIONIERT |
+| Kamera | ✅ FUNKTIONIERT |
+| Ton / Lautsprecher | ✅ FUNKTIONIERT |
+| Akku laden | ✅ FUNKTIONIERT |
+| Flugmodus | ✅ FUNKTIONIERT |
+| Hotspot | ✅ FUNKTIONIERT |
+| GPS | ✅ FUNKTIONIERT |
+| Mobilfunk / Telefonieren | ✅ FUNKTIONIERT |
+
+### Screenshots
+
+<table>
+<tr><td align="center"><img src="screenshots/sysinfo.png" width="220" alt="Systeminformationen"><br><sub>Systeminformationen</sub></td><td align="center"><img src="screenshots/wifi-mobile.png" width="220" alt="WLAN + Mobilfunk"><br><sub>WLAN + Mobilfunk</sub></td><td align="center"><img src="screenshots/bluetooth.png" width="220" alt="Bluetooth (MeshCore-Node gefunden)"><br><sub>Bluetooth (MeshCore-Node gefunden)</sub></td></tr>
+<tr><td align="center"><img src="screenshots/battery.png" width="220" alt="Akku / Laden"><br><sub>Akku / Laden</sub></td><td align="center"><img src="screenshots/camera.png" width="220" alt="Kamera"><br><sub>Kamera</sub></td><td align="center"><img src="screenshots/hotspot.png" width="220" alt="Hotspot"><br><sub>Hotspot</sub></td></tr>
+<tr><td align="center"><img src="screenshots/hotspot-setup.png" width="220" alt="Hotspot einrichten"><br><sub>Hotspot einrichten</sub></td><td align="center"><img src="screenshots/location.png" width="220" alt="Standort"><br><sub>Standort</sub></td><td align="center"><img src="screenshots/location-settings.png" width="220" alt="Standorteinstellungen (GPS)"><br><sub>Standorteinstellungen (GPS)</sub></td></tr>
+</table>
+
+<details><summary>Vollständige Feature-Matrix (Aufbau wie auf devices.ubuntu-touch.io)</summary>
+
+✅ = funktioniert · ❔ = noch nicht getestet
+
+| Kategorie | Funktion | Status |
+|---|---|---|
+| Actors | Manual brightness | ❔ |
+|  | Notification LED | ❔ |
+|  | Torchlight | ✅ |
+|  | Vibration | ❔ |
+| Camera | Flashlight | ❔ |
+|  | Photo | ✅ |
+|  | Switching between cameras | ✅ |
+|  | Video | ✅ |
+| Cellular | Change audio routings | ❔ |
+|  | Incoming, outgoing calls | ✅ |
+|  | Carrier info, signal strength | ✅ |
+|  | Data connection | ✅ |
+|  | Dual SIM functionality | ❔ |
+|  | MMS in, out | ❔ |
+|  | PIN unlock | ✅ |
+|  | SMS in, out | ❔ |
+|  | Voice in calls | ✅ |
+|  | LTE calling (VoLTE) | ❔ |
+|  | Volume control in calls | ✅ |
+| Endurance | 24+ hours battery lifetime | ❔ |
+|  | 7+ days stability | ❔ |
+| GPU | Boot into UI | ✅ |
+|  | Hardware video playback | ❔ |
+| Misc | AppArmor patches | ❔ |
+|  | Battery percentage | ✅ |
+|  | Reset to factory defaults | ❔ |
+|  | Offline charging | ✅ |
+|  | Online charging | ✅ |
+|  | Recovery image | ❔ |
+|  | RTC time | ❔ |
+|  | SD card storage | ✅ |
+|  | Shutdown / Reboot | ✅ |
+|  | Waydroid | ❔ |
+|  | Wireless External monitor | ❔ |
+| Network | Bluetooth | ✅ |
+|  | Flight mode | ✅ |
+|  | Hotspot | ✅ |
+|  | NFC | ❔ |
+|  | WiFi | ✅ |
+| Sensors | Automatic brightness | ❔ |
+|  | Double touch to wake | ❔ |
+|  | Fingerprint reader | ❔ |
+|  | GPS | ✅ |
+|  | Proximity | ❔ |
+|  | Rotation | ❔ |
+|  | Touchscreen | ✅ |
+| Sound | Earphones | ❔ |
+|  | Loudspeaker | ✅ |
+|  | Microphone | ✅ |
+|  | Volume control | ✅ |
+| USB | ADB access | ❔ |
+|  | MTP access | ❔ |
+
+</details>
+
 ## Inhalt
 
 ```
@@ -27,6 +112,7 @@ images/
   vendor.img              Droidian-vayu-Vendor
   orangefox-R11.3-vayu-recovery.img
   ubuntu.img              Ubuntu-Touch-24.04-Rootfs (kommt nach /data)
+screenshots/              Screenshots vom Gerät
 build/
   build-2404.sh           lädt + baut das komplette Kit, ohne root
   out/device_vayu_usrmerge.tar.xz
@@ -136,8 +222,7 @@ Hinweise:
 ## Schritt 3 – Erster Start
 
 Der erste Start dauert 1–3 Minuten, dann erscheint der Ubuntu-Touch-Willkommensassistent.
-Die Hardware-Unterstützung dieses 24.04-Builds ist noch nicht vollständig getestet – bitte WLAN, mobile Daten,
-Telefonie, Audio, Bluetooth, Kamera, GPS und Sensoren prüfen.
+Was bereits getestet wurde, steht unter [Hardware-Unterstützung](#hardware-unterstützung).
 
 ## Komplettes Kit neu bauen
 
