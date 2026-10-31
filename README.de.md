@@ -11,6 +11,7 @@ Inoffizielles Ubuntu-Touch-Image für das Poco X3 Pro (Codename **vayu**), gebau
 | Halium | Halium 11 generic arm64 (UBports Jenkins) |
 | vendor.img / vbmeta.img | Droidian vayu Snapshot 18.11.2024 (MIUI-Vendor mit Linux-Fixes) |
 | Recovery | OrangeFox R11.3 stable für vayu (wird nur temporär gestartet, nie installiert) |
+| Telefonie | `ofono-binder-plugin` + QTI-IMS-Erweiterung statt des Port-Standards `ofono-ril-plugin` (nötig für SMS-Empfang, siehe [Fehlerbehebung](#fehlerbehebung)) |
 
 > ⚠️ Das ist **kein** offizielles UBports-Release, das Gerät ist **nicht** im UBports-Installer.
 > Das Flashen löscht **alle Daten** auf dem Telefon. Nutzung auf eigene Gefahr.
@@ -30,6 +31,7 @@ Getestet am 28.10.2026 mit diesem Kit (UT 24.04-2.2 stable) auf einem Poco X3 Pr
 | Hotspot | ✅ FUNKTIONIERT |
 | GPS | ✅ FUNKTIONIERT |
 | Mobilfunk / Telefonieren | ✅ FUNKTIONIERT |
+| SMS senden / empfangen | ✅ FUNKTIONIERT |
 | Taschenlampe | ✅ FUNKTIONIERT |
 | Kamerawechsel (vorne/hinten) | ✅ FUNKTIONIERT |
 | Video | ✅ FUNKTIONIERT |
@@ -70,7 +72,7 @@ Getestet am 28.10.2026 mit diesem Kit (UT 24.04-2.2 stable) auf einem Poco X3 Pr
 |  | Dual SIM functionality | ❔ |
 |  | MMS in, out | ❔ |
 |  | PIN unlock | ✅ |
-|  | SMS in, out | ❔ |
+|  | SMS in, out | ✅ |
 |  | Voice in calls | ✅ |
 |  | LTE calling (VoLTE) | ❔ |
 |  | Volume control in calls | ✅ |
@@ -328,6 +330,27 @@ Danach mit `./flash.sh` (Neuinstallation) oder `./flash.sh --rootfs-only` (nur n
 | `Partition not found` (vendor) | vendor aus fastbootd flashen (`fastboot reboot fastboot`) |
 | Bootschleife / zurück in Fastboot | boot.img + dtbo.img prüfen, `./flash.sh` erneut ausführen |
 | Zurück zu Android | MIUI-Fastboot-ROM für vayu mit Xiaomis `flash_all.sh` flashen (nicht `flash_all_lock`!) |
+| SMS senden geht, Empfang nicht; SMS kommen erst gesammelt nach Flugmodus / Neustart | das Netz stellt SMS über IMS zu, das `ofono-ril-plugin` nicht empfängt – dieses Kit nutzt bereits `ofono-binder-plugin`; für ältere Installationen siehe unten |
+
+### SMS-Fix für eine bestehende Installation
+
+Images, die vor dem 31.10.2026 gebaut wurden, nutzen noch `ofono-ril-plugin`. Im 1&1-Netz (und vermutlich bei anderen
+Anbietern, die SMS über IMS zustellen) bleiben eingehende SMS dann bis zur nächsten Neuanmeldung im Netz hängen.
+Umstellen auf `ofono-binder-plugin` + QTI-IMS-Erweiterung – die Pakete sind bereits im Rootfs enthalten:
+
+```bash
+# am PC: den Block BINDER_CONF_EOF aus build/build-2404.sh als binder.conf speichern, dann
+adb push binder.conf /home/phablet/binder.conf
+adb shell                       # Telefon entsperrt und verbunden
+# auf dem Telefon:
+sudo mount -o remount,rw /
+sudo install -m 644 ~/binder.conf /etc/ofono/binder.conf
+sudo sed -i '/^vayu:/a\  OfonoPlugin: binder' /etc/deviceinfo/devices/vayu.yaml
+device-info get OfonoPlugin     # muss ausgeben: binder
+sudo reboot
+```
+
+Rückgängig: `/etc/ofono/binder.conf` löschen und die Zeile `OfonoPlugin` in `/etc/deviceinfo/devices/vayu.yaml` entfernen, dann neu starten.
 
 ## Danksagung
 

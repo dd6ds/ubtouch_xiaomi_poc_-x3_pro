@@ -11,6 +11,7 @@ Unofficial Ubuntu Touch image for the Poco X3 Pro (codename **vayu**), built fro
 | Halium | Halium 11 generic arm64 (UBports Jenkins) |
 | vendor.img / vbmeta.img | Droidian vayu snapshot 2024-11-18 (MIUI vendor with Linux fixes) |
 | Recovery | OrangeFox R11.3 stable for vayu (only booted temporarily, never installed) |
+| Telephony | `ofono-binder-plugin` + QTI IMS extension instead of the port's default `ofono-ril-plugin` (needed to receive SMS, see [Troubleshooting](#troubleshooting)) |
 
 > ⚠️ This is **not** an official UBports release and the device is **not** in the UBports installer.
 > Flashing wipes **all data** on the phone. Use at your own risk.
@@ -30,6 +31,7 @@ Tested on 2026-10-28 with this kit (UT 24.04-2.2 stable) on a Poco X3 Pro (MIUI 
 | Hotspot | ✅ WORKS |
 | GPS | ✅ WORKS |
 | Mobile network / phone calls | ✅ WORKS |
+| SMS send / receive | ✅ WORKS |
 | Torchlight | ✅ WORKS |
 | Switching between cameras | ✅ WORKS |
 | Video | ✅ WORKS |
@@ -70,7 +72,7 @@ Tested on 2026-10-28 with this kit (UT 24.04-2.2 stable) on a Poco X3 Pro (MIUI 
 |  | Dual SIM functionality | ❔ |
 |  | MMS in, out | ❔ |
 |  | PIN unlock | ✅ |
-|  | SMS in, out | ❔ |
+|  | SMS in, out | ✅ |
 |  | Voice in calls | ✅ |
 |  | LTE calling (VoLTE) | ❔ |
 |  | Volume control in calls | ✅ |
@@ -328,6 +330,27 @@ Then flash with `./flash.sh` (new install) or `./flash.sh --rootfs-only` (only a
 | `Partition not found` (vendor) | flash vendor from fastbootd (`fastboot reboot fastboot`) |
 | boot loop / back to fastboot | re-check boot.img + dtbo.img, re-run `./flash.sh` |
 | Back to Android | flash a MIUI fastboot ROM for vayu with Xiaomi's `flash_all.sh` (not `flash_all_lock`!) |
+| SMS can be sent but not received; they only arrive in a burst after flight mode / reboot | the network delivers SMS over IMS, which `ofono-ril-plugin` does not receive – this kit already uses `ofono-binder-plugin`; for older installs see below |
+
+### SMS fix for an existing installation
+
+Images built before 2026-10-31 still use `ofono-ril-plugin`. On the 1&1 network (and probably with other carriers that
+deliver SMS over IMS) incoming SMS then stay in the network until the next re-registration. Switch to
+`ofono-binder-plugin` + QTI IMS extension – the packages are already part of the rootfs:
+
+```bash
+# on the PC: save the BINDER_CONF_EOF block from build/build-2404.sh as binder.conf, then
+adb push binder.conf /home/phablet/binder.conf
+adb shell                       # phone unlocked and connected
+# on the phone:
+sudo mount -o remount,rw /
+sudo install -m 644 ~/binder.conf /etc/ofono/binder.conf
+sudo sed -i '/^vayu:/a\  OfonoPlugin: binder' /etc/deviceinfo/devices/vayu.yaml
+device-info get OfonoPlugin     # must print: binder
+sudo reboot
+```
+
+To undo: delete `/etc/ofono/binder.conf` and the `OfonoPlugin` line in `/etc/deviceinfo/devices/vayu.yaml`, then reboot.
 
 ## Credits
 
