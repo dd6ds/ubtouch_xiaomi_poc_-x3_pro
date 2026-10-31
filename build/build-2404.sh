@@ -250,12 +250,68 @@ build/
   out/device_vayu_usrmerge.tar.xz
 ```
 
-## Requirements
+## Requirements & installation notes
 
-- Poco X3 Pro (vayu) running **MIUI 12.5.x / Android 11** (firmware base for Halium 11). Tested on MIUI 12.5.5 EEA.
-- Linux PC with `adb`, `fastboot` (android-tools / `android-sdk-platform-tools`), `python3`, `python3-venv`.
-- A good USB data cable.
-- About 6 GB free disk space.
+Go through this list before you start – most failed installs come from a missing item here.
+
+### Phone
+
+- **Poco X3 Pro, codename `vayu`** (global/EEA model M2102J20SG). `flash.sh` aborts unless `fastboot getvar product` reports `vayu`.
+- **Firmware base MIUI 12.5.x / Android 11** (check under *Settings → About phone*). Tested on MIUI 12.5.5 EEA.
+  The kit only replaces boot, dtbo, vbmeta and vendor – the phone's own firmware partitions (modem, DSP, …) stay
+  and have to match Halium 11. If the phone already runs MIUI 13/14 (Android 12/13), first flash a MIUI 12.5
+  fastboot ROM for vayu with Xiaomi's `flash_all.sh`. Check `fastboot getvar anti` beforehand and never flash a ROM
+  with a lower anti-rollback index than the phone reports.
+- **Unlocked bootloader** (step 1) – plan for Xiaomi's waiting time of **168 hours (7 days)**.
+- **Xiaomi account with a phone number** and a **SIM card with mobile data** to bind the account (step 1.1).
+- **Battery at least 50 %** – the phone switches between bootloader, fastbootd and recovery and must not run out.
+- **Back up everything**: unlocking and flashing wipe the internal storage completely.
+  A microSD card is not touched, but remove it to be safe.
+
+### Linux PC
+
+- Linux with bash (developed on Linux Mint 22). `flash.sh` does not run on Windows; macOS is untested.
+- Packages:
+
+  | Distribution | Command |
+  |---|---|
+  | Debian / Ubuntu / Linux Mint | `sudo apt install adb fastboot android-sdk-platform-tools-common python3 python3-venv zstd` |
+  | Fedora | `sudo dnf install android-tools python3 zstd` |
+  | Arch / Manjaro | `sudo pacman -S android-tools android-udev python zstd` |
+
+  `zstd` is only needed to unpack the `.tar.zst` release archive.
+- **`fastboot` version 31 or newer** (`fastboot --version`) – older versions cannot switch to fastbootd
+  (`fastboot reboot fastboot`), which is needed for `vendor.img`. If your distribution ships an older one, download
+  Google's *SDK Platform-Tools* for Linux, unpack them and put them first in `PATH`:
+  `export PATH="$HOME/platform-tools:$PATH"`.
+- **USB permissions**: without a udev rule `fastboot devices` shows `no permissions`. The packages above
+  (`android-sdk-platform-tools-common` / `android-udev`) install suitable rules. Otherwise create
+  `/etc/udev/rules.d/51-android.rules`:
+
+  ```
+  SUBSYSTEM=="usb", ATTR{idVendor}=="2717", MODE="0660", TAG+="uaccess"
+  SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0660", TAG+="uaccess"
+  ```
+
+  then `sudo udevadm control --reload-rules && sudo udevadm trigger` and re-plug the phone.
+- **USB cable / port**: a data cable, connected directly to the PC (no hub). If fastboot hangs or reports
+  `FAILED (Status read failed)`, try a USB 2.0 port – the Xiaomi bootloader is picky with some USB 3 controllers.
+- **Disk space**: about 6 GB for the unpacked kit, about 16 GB for a rebuild (see below).
+
+### Pre-flight check
+
+```bash
+cd vayu-ubuntu-touch-24.04-flashkit
+fastboot --version                       # 31 or newer
+(cd images && sha256sum -c ../SHA256SUMS) # every line: OK
+# phone in fastboot mode (power off, hold Vol- + Power), connected via USB:
+fastboot devices                         # <serial>  fastboot
+fastboot getvar product                  # product: vayu
+fastboot getvar unlocked                 # unlocked: yes  (after step 1)
+fastboot getvar anti                     # note the anti-rollback index
+```
+
+Time needed: unlocking up to 7 days (waiting time), flashing about 10 minutes, first boot 1–3 minutes.
 
 ---
 
@@ -386,6 +442,9 @@ Then flash with `./flash.sh` (new install) or `./flash.sh --rootfs-only` (only a
 | Problem | Fix |
 |---|---|
 | `adb: no devices` | enable USB debugging, accept the prompt, try another cable; udev rule for vendor `2717`/`18d1` |
+| `no permissions` in `fastboot devices` | udev rule missing (see [Requirements](#requirements--installation-notes)), re-plug the phone |
+| `fastboot reboot fastboot` fails / stays in bootloader | `fastboot` too old – use Google's current platform-tools (version 31+) |
+| fastboot hangs / `FAILED (Status read failed)` | USB 2.0 port, no hub, different cable |
 | miunlock `20041` | no phone number on the Xiaomi account (see 1.1) |
 | miunlock `20036` | waiting time – do not re-add the account |
 | `Partition not found` (vendor) | flash vendor from fastbootd (`fastboot reboot fastboot`) |
@@ -528,12 +587,68 @@ build/
   out/device_vayu_usrmerge.tar.xz
 ```
 
-## Voraussetzungen
+## Voraussetzungen & Installationshinweise
 
-- Poco X3 Pro (vayu) mit **MIUI 12.5.x / Android 11** (Firmware-Basis für Halium 11). Getestet mit MIUI 12.5.5 EEA.
-- Linux-PC mit `adb`, `fastboot` (android-tools / `android-sdk-platform-tools`), `python3`, `python3-venv`.
-- Ein gutes USB-Datenkabel.
-- Ca. 6 GB freier Speicherplatz.
+Diese Liste vor dem Start durchgehen – die meisten fehlgeschlagenen Installationen scheitern an einem Punkt hier.
+
+### Telefon
+
+- **Poco X3 Pro, Codename `vayu`** (Global-/EEA-Modell M2102J20SG). `flash.sh` bricht ab, wenn `fastboot getvar product` nicht `vayu` meldet.
+- **Firmware-Basis MIUI 12.5.x / Android 11** (prüfen unter *Einstellungen → Über das Telefon*). Getestet mit MIUI 12.5.5 EEA.
+  Das Kit ersetzt nur boot, dtbo, vbmeta und vendor – die Firmware-Partitionen des Telefons (Modem, DSP, …) bleiben
+  und müssen zu Halium 11 passen. Läuft bereits MIUI 13/14 (Android 12/13), vorher ein MIUI-12.5-Fastboot-ROM für
+  vayu mit Xiaomis `flash_all.sh` flashen. Vorher `fastboot getvar anti` prüfen und nie ein ROM mit niedrigerem
+  Anti-Rollback-Index flashen, als das Telefon meldet.
+- **Entsperrter Bootloader** (Schritt 1) – Xiaomis Wartezeit von **168 Stunden (7 Tage)** einplanen.
+- **Xiaomi-Konto mit Telefonnummer** und eine **SIM-Karte mit mobilen Daten** zum Verknüpfen des Kontos (Schritt 1.1).
+- **Akku mindestens 50 %** – das Telefon wechselt zwischen Bootloader, fastbootd und Recovery und darf nicht ausgehen.
+- **Alles sichern**: Entsperren und Flashen löschen den internen Speicher vollständig.
+  Eine microSD-Karte wird nicht angefasst, sicherheitshalber trotzdem entnehmen.
+
+### Linux-PC
+
+- Linux mit bash (entwickelt unter Linux Mint 22). `flash.sh` läuft nicht unter Windows; macOS ist ungetestet.
+- Pakete:
+
+  | Distribution | Befehl |
+  |---|---|
+  | Debian / Ubuntu / Linux Mint | `sudo apt install adb fastboot android-sdk-platform-tools-common python3 python3-venv zstd` |
+  | Fedora | `sudo dnf install android-tools python3 zstd` |
+  | Arch / Manjaro | `sudo pacman -S android-tools android-udev python zstd` |
+
+  `zstd` wird nur zum Entpacken des `.tar.zst`-Release-Archivs gebraucht.
+- **`fastboot` ab Version 31** (`fastboot --version`) – ältere Versionen können nicht nach fastbootd wechseln
+  (`fastboot reboot fastboot`), das für `vendor.img` nötig ist. Liefert die Distribution eine ältere Version,
+  Googles *SDK Platform-Tools* für Linux herunterladen, entpacken und vorne in den `PATH` setzen:
+  `export PATH="$HOME/platform-tools:$PATH"`.
+- **USB-Rechte**: Ohne udev-Regel zeigt `fastboot devices` nur `no permissions`. Die Pakete oben
+  (`android-sdk-platform-tools-common` / `android-udev`) bringen passende Regeln mit. Sonst
+  `/etc/udev/rules.d/51-android.rules` anlegen:
+
+  ```
+  SUBSYSTEM=="usb", ATTR{idVendor}=="2717", MODE="0660", TAG+="uaccess"
+  SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0660", TAG+="uaccess"
+  ```
+
+  danach `sudo udevadm control --reload-rules && sudo udevadm trigger` und das Telefon neu anstecken.
+- **USB-Kabel / -Port**: ein Datenkabel, direkt am PC (kein Hub). Hängt fastboot oder meldet
+  `FAILED (Status read failed)`, einen USB-2.0-Port probieren – der Xiaomi-Bootloader ist mit manchen USB-3-Controllern heikel.
+- **Speicherplatz**: ca. 6 GB für das entpackte Kit, ca. 16 GB für einen Neubau (siehe unten).
+
+### Check vor dem Flashen
+
+```bash
+cd vayu-ubuntu-touch-24.04-flashkit
+fastboot --version                       # 31 oder neuer
+(cd images && sha256sum -c ../SHA256SUMS) # jede Zeile: OK
+# Telefon im Fastboot-Modus (ausschalten, Leiser + Power halten), per USB verbunden:
+fastboot devices                         # <Seriennummer>  fastboot
+fastboot getvar product                  # product: vayu
+fastboot getvar unlocked                 # unlocked: yes  (nach Schritt 1)
+fastboot getvar anti                     # Anti-Rollback-Index notieren
+```
+
+Zeitbedarf: Entsperren bis zu 7 Tage (Wartezeit), Flashen ca. 10 Minuten, erster Start 1–3 Minuten.
 
 ---
 
@@ -664,6 +779,9 @@ Danach mit `./flash.sh` (Neuinstallation) oder `./flash.sh --rootfs-only` (nur n
 | Problem | Lösung |
 |---|---|
 | `adb: no devices` | USB-Debugging an, Abfrage bestätigen, anderes Kabel; udev-Regel für Vendor `2717`/`18d1` |
+| `no permissions` bei `fastboot devices` | udev-Regel fehlt (siehe [Voraussetzungen](#voraussetzungen--installationshinweise)), Telefon neu anstecken |
+| `fastboot reboot fastboot` schlägt fehl / bleibt im Bootloader | `fastboot` zu alt – aktuelle Platform-Tools von Google verwenden (ab Version 31) |
+| fastboot hängt / `FAILED (Status read failed)` | USB-2.0-Port, kein Hub, anderes Kabel |
 | miunlock `20041` | keine Telefonnummer am Xiaomi-Konto (siehe 1.1) |
 | miunlock `20036` | Wartezeit – Konto nicht erneut hinzufügen |
 | `Partition not found` (vendor) | vendor aus fastbootd flashen (`fastboot reboot fastboot`) |
